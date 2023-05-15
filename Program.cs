@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Security.Cryptography.X509Certificates;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace ConsoleApp2;
@@ -9,8 +8,6 @@ public class Program
 {
     private static readonly string connectionString =
     "Data Source=INDOMIEGORENG;Database=db_booking_room;Integrated Security = True; Connect Timeout = 30; Encrypt=False;";
-
-    
 
     public static void Main()
     {
@@ -250,64 +247,77 @@ public class Program
             }
         }*/
 
+            /*var education = new Educations();
+            education.Major = "Manajemen Bisnis";
+            education.Degree = "S2";
+            education.GPA = "3.8";
+            education.UniversityId = 4;
 
-        bool ulang = true;
-        while (ulang == true)
-        {
-            MenuInsertAll();
-            int pilihan;
-            Console.Write("Menu yang dipilih: ");
-            pilihan = Convert.ToInt16(Console.ReadLine());
-
-            
-            var employees = new Employees();
-
-            switch (pilihan)
+            var results = InsertEducations(education);
+            if (results > 0)
             {
-                case 1:
-                    Console.Write("NIK: "); var nik = Console.ReadLine(); employees.NIK = nik;
-                    Console.Write("First Name: "); var fname = Console.ReadLine(); employees.FirstName = fname;
-                    Console.Write("Last Name: "); var lname = Console.ReadLine(); employees.LastName = lname;
-                    Console.Write("Birth Date: "); var bdate = DateTime.Parse(Console.ReadLine()); employees.BirthDate = bdate;
-                    Console.Write("Gender: "); var gender = Console.ReadLine(); employees.Gender = gender;
-                    Console.Write("Hiring Date: "); var hdate = DateTime.Parse(Console.ReadLine()); employees.HiringDate = hdate;
-                    Console.Write("Email: "); var email = Console.ReadLine(); employees.Email = email;
-                    Console.Write("Phone Number: "); var pnumber = Console.ReadLine(); employees.PhoneNumber = pnumber;
-                    Console.Write("Department Id: "); var did = Console.ReadLine(); employees.DepartmentId = did;
-                    Employees.InsertEmployees(employees);
-                    break;
-                case 2:
-                    var profilings = new Profilings();
-                    profilings.EmployeeId = GetGuidEmployee(employees.NIK);
-                    Console.WriteLine("Employee Id: " + profilings.EmployeeId);
-                    Console.WriteLine("Education Id: "); var eid = Convert.ToInt32(Console.ReadLine());profilings.EducationId = eid;
-                    Profilings.InsertProfilings(profilings);
-                    break;
-                case 3:
-                    var educations = new Educations();
-                    Console.Write("Major: "); var major = Console.ReadLine(); educations.Major = major;
-                    Console.Write("Degree: "); var degree = Console.ReadLine(); educations.Degree = degree;
-                    Console.Write("GPA: "); var gpa = Console.ReadLine(); educations.GPA = gpa;
-                    Console.Write("University Id: "); var uid = Convert.ToInt32(Console.ReadLine()); educations.UniversityId = uid;
-                    Educations.InsertEducations(educations);
-                    break;
-                case 4:
-                    var university = new University();
-                    Console.Write("Name University: "); var name = Console.ReadLine(); university.Name = name;
-                    University.InsertUniversity(university);
-                    break;
-                case 5:
-                    ulang = false;
-                    Console.Clear();
-                    Console.WriteLine("Terima Kasih");
-                    break;
-                default:
-                    Console.WriteLine("Anda salah input, silahkan periksa kembali.");
-                    Thread.Sleep(2000); // lalu akan kembali pada tampilan halaman utama..
-                    break;
+                Console.WriteLine("Insert Success");
             }
-        }
+            else
+            {
+                Console.WriteLine("Insert Failed");
+            }*/
 
+            var employees = new Employees();
+            Console.Write("NIK: "); var nik = Console.ReadLine(); employees.NIK = nik;
+            Console.Write("First Name: "); var fname = Console.ReadLine(); employees.FirstName = fname;
+            Console.Write("Last Name: "); var lname = Console.ReadLine(); employees.LastName = lname;
+            Console.Write("Birth Date: "); var bdate = DateTime.Parse(Console.ReadLine()); employees.BirthDate = bdate;
+            Console.Write("Gender: "); var gender = Console.ReadLine(); employees.Gender = gender;
+            Console.Write("Hiring Date: "); var hdate = DateTime.Parse(Console.ReadLine()); employees.HiringDate = hdate;
+            Console.Write("Email: "); var email = Console.ReadLine(); employees.Email = email;
+            Console.Write("Phone Number: "); var pnumber = Console.ReadLine(); employees.PhoneNumber = pnumber;
+            Console.Write("Department Id: "); var did = Console.ReadLine(); employees.DepartmentId = did;
+            Employees.InsertEmployees(employees);
+
+            var university = new University();
+            Console.Write("Name University: "); var name = Console.ReadLine(); university.Name = name;
+            University.InsertUniversity(university);
+
+            var educations = new Educations();
+            Console.Write("Major: "); var major = Console.ReadLine(); educations.Major = major;
+            Console.Write("Degree: "); var degree = Console.ReadLine(); educations.Degree = degree;
+            Console.Write("GPA: "); var gpa = Console.ReadLine(); educations.GPA = gpa;
+            educations.UniversityId = GetIdUniv();
+            /*Console.WriteLine(educations.UniversityId);*/
+            Educations.InsertEducations(educations);
+
+            var profilings = new Profilings();
+            /*Console.WriteLine(employees.NIK);*/
+            profilings.EmployeeId = GetGuidEmployee(employees.NIK);
+            profilings.EducationId = GetIdEducation();
+            Console.WriteLine("Employee Id: " + profilings.EmployeeId);
+            Console.WriteLine("Education Id: " + profilings.EducationId);
+            Profilings.InsertProfilings(profilings);
+        }
+    
+    public static int GetIdEducation()
+    {
+        using var connection = new SqlConnection(connectionString);
+        connection.Open();
+
+        SqlCommand command = new SqlCommand("SELECT TOP 1 id FROM tb_m_educations ORDER BY id DESC", connection);
+        int lastInserted = Convert.ToInt32(command.ExecuteScalar());
+        connection.Close();
+
+        return lastInserted;
+    }
+
+    public static int GetIdUniv()
+    {
+        using var connection = new SqlConnection(connectionString);
+        connection.Open();
+
+        SqlCommand command = new SqlCommand("SELECT TOP 1 id FROM tb_m_universities ORDER BY id DESC", connection);
+        int lastInserted = Convert.ToInt32(command.ExecuteScalar());
+        connection.Close();
+
+        return lastInserted;
     }
 
     public static string GetGuidEmployee(string NIK)
@@ -315,7 +325,7 @@ public class Program
         using var connection = new SqlConnection(connectionString);
         connection.Open();
 
-        SqlCommand command = new SqlCommand("SELECT TOP 1 id FROM tb_m_employees WHERE nik = (@nik)");
+        SqlCommand command = new SqlCommand("SELECT TOP 1 id FROM tb_m_employees WHERE NIK = (@nik)", connection);
 
         // Membuat parameter
         var pNik = new SqlParameter();
@@ -331,7 +341,12 @@ public class Program
         connection.Close();
 
         return lastInserted;
+
+            
+        
+
     }
+
     /* CRUD TABLE UNIVERSITY */
 
     // METHOD GET UNIVERISTY
