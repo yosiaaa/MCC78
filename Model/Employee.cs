@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ConsoleApp2.Context;
 
-namespace ConsoleApp2
+namespace ConsoleApp2.Model
 {
-    public class Employees
+    public class Employee
     {
-
-
         public string Id { get; set; }
         public string NIK { get; set; }
         public string FirstName { get; set; }
@@ -23,18 +19,58 @@ namespace ConsoleApp2
         public string PhoneNumber { get; set; }
         public string DepartmentId { get; set; }
 
-        /*internal static void InsertEmployees(Employees employees)
+        public List<Employee> GetEmployees()
         {
-            throw new NotImplementedException();
-        }*/
+            var employees = new List<Employee>();
+            using SqlConnection connection = MyConnection.Get();
+            try
+            {
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandText = "SELECT * FROM tb_m_employees";
 
-        private static readonly string connectionString =
-        "Data Source=INDOMIEGORENG;Database=db_booking_room;Integrated Security = True; Connect Timeout = 30; Encrypt=False;";
+                connection.Open();
 
-        public static int InsertEmployees(Employees employee)
+                using SqlDataReader reader = command.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        var employee = new Employee();
+
+                        employee.Id = reader.GetGuid(0).ToString();
+                        employee.NIK = reader.GetString(1);
+                        employee.FirstName = reader.GetString(2);
+                        employee.LastName = reader.GetString(3);
+                        employee.BirthDate = reader.GetDateTime(4);
+                        employee.Gender = reader.GetString(5);
+                        employee.HiringDate = reader.GetDateTime(6);
+                        employee.Email = reader.GetString(7);
+                        employee.PhoneNumber = reader.GetString(8);
+                        employee.DepartmentId = reader.GetString(9);
+
+                        employees.Add(employee);
+                    }
+
+                    return employees;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                connection.Close();
+            }
+            return new List<Employee>();
+        }
+
+        public int InsertEmployees(Employee employee)
         {
             int result = 0;
-            using var connection = new SqlConnection(connectionString);
+            using var connection = MyConnection.Get();
             connection.Open();
 
             SqlTransaction transaction = connection.BeginTransaction();
@@ -49,7 +85,7 @@ namespace ConsoleApp2
                 // Membuat parameter
                 var pNik = new SqlParameter();
                 pNik.ParameterName = "@nik";
-                pNik.SqlDbType = SqlDbType.Char;
+                pNik.SqlDbType = SqlDbType.VarChar;
                 pNik.Size = 50;
                 pNik.Value = employee.NIK;
 
@@ -98,8 +134,6 @@ namespace ConsoleApp2
                 pDId.SqlDbType = SqlDbType.VarChar;
                 pDId.Size = 50;
                 pDId.Value = employee.DepartmentId;
-
-
 
                 // Menambahkan parameter ke command
                 command.Parameters.Add(pNik);
